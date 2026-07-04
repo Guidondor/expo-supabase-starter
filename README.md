@@ -110,8 +110,8 @@ hits `window is not defined`. SPA is the right default here.
 
 ## Pro version
 
-The Pro version adds the features most apps eventually need, already built and
-security-audited:
+The Pro version adds the features most apps eventually need, already built,
+RLS-hardened, and covered by a reproducible database security test:
 
 - **Shared groups** — create/join by invite code, members, ownership transfer.
 - **Private-or-shared data pattern** — the exact RLS recipe for data that's private
