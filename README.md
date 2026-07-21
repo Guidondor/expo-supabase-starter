@@ -121,7 +121,7 @@ RLS-hardened, and covered by a reproducible database security test:
 - **"12 common mistakes" guide** — the Expo + Supabase pitfalls that cost real
   debugging time, with symptom → cause → fix → code.
 
-👉 **Get the Pro version:** <your-gumroad-link>
+👉 **Get the Pro version:** https://guidondor.gumroad.com/l/expo-supabase-pro
 
 ---
 
