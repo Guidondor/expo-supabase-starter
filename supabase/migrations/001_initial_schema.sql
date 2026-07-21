@@ -25,6 +25,16 @@ CREATE POLICY "profiles_update_own" ON public.profiles
   FOR UPDATE USING ((SELECT auth.uid()) = id)
   WITH CHECK ((SELECT auth.uid()) = id);
 
+-- Column-level hardening. RLS gates rows, not columns — for reads AND writes.
+-- Hide `email` from the auto REST API, and keep it (plus id/created_at) immutable
+-- from the client (it mirrors auth.users.email). Only display_name is user-editable.
+-- Copy this pattern for your own sensitive columns. NOTE: with revoked columns,
+-- `select('*')` fails — always select explicit columns.
+REVOKE SELECT ON public.profiles FROM anon, authenticated;
+GRANT  SELECT (id, display_name, created_at) ON public.profiles TO authenticated;
+REVOKE UPDATE ON public.profiles FROM anon, authenticated;
+GRANT  UPDATE (display_name) ON public.profiles TO authenticated;
+
 -- Creates the profile automatically on signup. SECURITY DEFINER so it can insert
 -- bypassing RLS; search_path is pinned for hardening (avoids function hijacking
 -- via caller schemas).
