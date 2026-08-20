@@ -52,8 +52,12 @@ that part is tested:
   RLS gates rows, not columns — that distinction is the one most projects miss.
 - `SECURITY DEFINER` functions revoke `EXECUTE` from `anon` and pin
   `search_path`.
-- `supabase/tests/rls_smoke.sql` simulates two real users inside a rolled-back
-  transaction and proves neither can reach the other's rows.
+- `supabase/tests/rls_smoke.sql` drops to the `authenticated` role, assumes a
+  real user's identity inside a rolled-back transaction, and asserts they can
+  see their own profile, cannot see anyone else's, cannot `SELECT *` past the
+  revoked column, and cannot change an immutable one. It refuses to report a
+  pass when the project holds fewer than two accounts, because with one account
+  "sees no other rows" is true for lack of data rather than because RLS held.
 
 Before shipping, run the smoke test against your own project and work through
 the checklist at the end of the README.

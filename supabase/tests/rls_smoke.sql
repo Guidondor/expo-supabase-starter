@@ -7,9 +7,16 @@
 -- so it never mutates your data.
 --
 -- HOW TO RUN
---   1. Sign up a user through the app, put their auth user id below.
+--   1. Sign up TWO users through the app. One is the identity the test assumes;
+--      the second exists so the isolation check has something to fail against.
+--      Put the first one's auth user id below.
 --   2. Run it in the Supabase SQL Editor. A clean run RAISES "RLS_SMOKE PASS";
 --      any "FAIL" means a check did not hold — investigate before shipping.
+--
+-- Why two users: with a single account in the project, "this user sees no other
+-- rows" is true because there ARE no other rows. The test would pass without
+-- ever exercising RLS. The guard below turns that into an explicit failure
+-- instead of a green tick you can't trust.
 -- ============================================================
 
 DO $$
@@ -19,29 +26,37 @@ DECLARE
   fails text[] := '{}';
   v_bool boolean;
   v_int int;
+  v_total int;
 BEGIN
+  -- Counted before dropping privileges, so RLS doesn't hide the answer.
+  SELECT count(*) INTO v_total FROM public.profiles;
+  IF v_total < 2 THEN
+    fails := array_append(fails, format(
+      'INCONCLUSIVE: only %s profile(s) exist. Sign up a second user, otherwise the isolation check passes for lack of data', v_total));
+  END IF;
+
   SET LOCAL ROLE authenticated;
   PERFORM set_config('request.jwt.claims', json_build_object('sub', u::text, 'role','authenticated')::text, true);
 
   -- Sees own profile
   SELECT count(*) INTO v_int FROM public.profiles WHERE id = u;
-  IF v_int <> 1 THEN fails := fails || 'own profile not visible'; END IF;
+  IF v_int <> 1 THEN fails := array_append(fails, 'own profile not visible'); END IF;
 
   -- Does NOT see other profiles
   SELECT count(*) INTO v_int FROM public.profiles WHERE id <> u;
-  IF v_int <> 0 THEN fails := fails || 'other profiles visible'; END IF;
+  IF v_int <> 0 THEN fails := array_append(fails, 'other profiles visible'); END IF;
 
   -- SELECT * fails (email column revoked)
   v_bool := false;
   BEGIN PERFORM * FROM public.profiles LIMIT 1;
   EXCEPTION WHEN insufficient_privilege THEN v_bool := true; END;
-  IF NOT v_bool THEN fails := fails || 'SELECT * on profiles did not fail'; END IF;
+  IF NOT v_bool THEN fails := array_append(fails, 'SELECT * on profiles did not fail'); END IF;
 
   -- Cannot change own email (immutable column)
   v_bool := false;
   BEGIN UPDATE public.profiles SET email = 'evil@x.com' WHERE id = u;
   EXCEPTION WHEN insufficient_privilege THEN v_bool := true; END;
-  IF NOT v_bool THEN fails := fails || 'email UPDATE was allowed'; END IF;
+  IF NOT v_bool THEN fails := array_append(fails, 'email UPDATE was allowed'); END IF;
 
   IF array_length(fails, 1) IS NULL THEN
     RAISE EXCEPTION 'RLS_SMOKE PASS — all checks held (rolled back)';

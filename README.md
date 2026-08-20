@@ -4,9 +4,9 @@ A production-ready **Expo + Supabase** starter, battle-tested in real apps. Auth
 offline sync, and the session-handling edge cases already solved — so you can ship
 your idea instead of your plumbing.
 
-This is the **free, open-source (MIT) lite version**. A [**Pro version**](#pro-version)
-adds the shared-groups feature, the private-or-shared data pattern, RLS hardening,
-an edge-function template, and a "12 common mistakes" guide.
+MIT licensed and complete on its own. There's also a [**Pro version**](#pro-version)
+for apps that need shared groups, the private-or-shared data pattern, column-level
+hardening, an edge-function template, and the "12 common mistakes" guide.
 
 - **Stack:** Expo SDK 57 · Expo Router · TypeScript · Zustand · Supabase · Jest
 - **Targets:** Android, iOS, and Web (react-native-web, single-page app)
