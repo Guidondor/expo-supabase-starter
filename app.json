@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "expo-supabase-pro",
-    "slug": "expo-supabase-pro",
+    "name": "expo-supabase-starter",
+    "slug": "expo-supabase-starter",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "exposupabasepro",
+    "scheme": "exposupabasestarter",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"

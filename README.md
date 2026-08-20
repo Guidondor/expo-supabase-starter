@@ -1,4 +1,4 @@
-# expo-supabase-pro (lite)
+# Expo + Supabase Starter
 
 A production-ready **Expo + Supabase** starter, battle-tested in real apps. Auth,
 offline sync, and the session-handling edge cases already solved — so you can ship
@@ -65,7 +65,7 @@ That's it — sign up, and you're in.
    http://localhost:8081
    http://localhost:8081/**
    ```
-   For native, add your scheme: `exposupabasepro://`.
+   For native, add your scheme: `exposupabasestarter://`.
 
 ### Password recovery
 The reset email links to a **web page** (mobile completes the reset on the web). Set `EXPO_PUBLIC_RESET_REDIRECT_URL` to that page's URL, and add it to the Supabase Redirect URLs allowlist. On web, `detectSessionInUrl` (already enabled) parses the token and fires the `PASSWORD_RECOVERY` event, which routes the user to the reset screen.

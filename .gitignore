@@ -59,3 +59,10 @@ context.md
 CLAUDE.md
 SETUP.md
 supabase/.temp/
+
+# internal dev tooling — not part of the template
+.claude/
+.claudeignore
+AGENTS.md
+CLAUDE.md
+context.md
