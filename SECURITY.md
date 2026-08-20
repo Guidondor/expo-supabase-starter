@@ -2,8 +2,8 @@
 
 ## Reporting
 
-Found something? Email the address in `package.json` / the repo profile. Please
-don't open a public issue for anything exploitable.
+Found something? Email **guido.burak@gmail.com**. Please don't open a public issue for
+anything exploitable — give me a chance to fix it first.
 
 ## Dependency advisories
 
