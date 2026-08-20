@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "include": [
     "src/**/__tests__/**/*.ts",
+    "types/**/*.d.ts",
     "expo-env.d.ts",
     ".expo/types/**/*.ts"
   ],
