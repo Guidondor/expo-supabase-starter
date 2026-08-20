@@ -13,7 +13,7 @@ hardening, an edge-function template, and the "12 common mistakes" guide.
 
 ---
 
-## Features (lite)
+## Features
 
 | | |
 |---|---|
@@ -46,7 +46,10 @@ npx expo start          # scan the QR with Expo Go (Android)
 npx expo start --web    # or run it in the browser
 ```
 
-That's it — sign up, and you're in.
+Sign up and you're in.
+
+> Testing with `you@example.com` will bounce with *"Email address is invalid"* —
+> Supabase's validator rejects reserved domains. Use any real-looking one.
 
 ---
 
@@ -105,6 +108,34 @@ npm run typecheck  # tsc (app + tests)
 `app.json` sets `web.output: "single"` (SPA). An auth-gated app can't be statically
 prerendered — Supabase's session lives in the browser, so server-side rendering
 hits `window is not defined`. SPA is the right default here.
+
+---
+
+## Before you ship
+
+- [ ] Run `supabase/migrations/001_initial_schema.sql` against **your** project.
+- [ ] Enable **Leaked Password Protection** (Auth → Policies) — it checks new
+      passwords against HaveIBeenPwned.
+- [ ] Keep `service_role` out of the client. Anything prefixed `EXPO_PUBLIC_`
+      ends up in the bundle, which is public.
+- [ ] Select explicit columns instead of `select('*')`. Migration 001 revokes
+      `email` at the column level, so `select('*')` fails on `profiles`.
+      **RLS gates rows, not columns** — a correct policy still hands back every
+      column of a row you're allowed to read, which is why the grant matters.
+- [ ] Know the write-side version of that trap:
+      ```ts
+      await supabase.from('profiles').update({ display_name })            // fine
+      await supabase.from('profiles').update({ display_name }).select()   // 42501
+      await supabase.from('profiles').update({ display_name })
+        .select('id, display_name')                                       // fine
+      ```
+      The failing one reads the row back with `select=*` and errors with a hint
+      telling you to `GRANT SELECT ON public.profiles` — follow it and you undo
+      the hardening. Name the columns instead.
+- [ ] Prove isolation rather than reading the policy and nodding: sign up two
+      users and run `supabase/tests/rls_smoke.sql`. It refuses to report a pass
+      with fewer than two accounts, because with one "sees no other rows" is
+      true for lack of data.
 
 ---
 
