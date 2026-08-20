@@ -38,6 +38,9 @@ function NavigationGuard() {
     } else if (session && inAuth) {
       router.replace('/');
     }
+    // Only the first segment decides the redirect, so the effect is keyed on it
+    // rather than on the whole array, which is a new identity every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, hydrated, recoveryMode, segments[0]]);
 
   return null;

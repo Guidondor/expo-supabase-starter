@@ -117,6 +117,9 @@ export function useAuthListener() {
       subscription.unsubscribe();
       appStateSub.remove();
     };
+    // Mount-once by design: the listener has to be installed exactly one time,
+    // and everything it touches is module-level and stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Profile fetch + account-switch detection — decoupled from the callback.
@@ -143,6 +146,10 @@ export function useAuthListener() {
     return () => {
       cancelled = true;
     };
+    // Keyed on the user id alone on purpose: the session object gets a new
+    // identity on every token refresh, and the profile only changes when the
+    // user does.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
 }
 
