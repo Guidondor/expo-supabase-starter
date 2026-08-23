@@ -105,6 +105,11 @@ npm run typecheck  # tsc (app + tests)
 
 ## Web / SPA note
 
+> If a web export ever boots with *"Missing EXPO_PUBLIC_..."* while your `.env`
+> is filled in, it's the Metro cache: the module was transformed once without the
+> variables and Babel folded them to `undefined`. Re-run with
+> `npx expo export -p web --clear`.
+
 `app.json` sets `web.output: "single"` (SPA). An auth-gated app can't be statically
 prerendered — Supabase's session lives in the browser, so server-side rendering
 hits `window is not defined`. SPA is the right default here.
