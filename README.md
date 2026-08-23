@@ -11,6 +11,12 @@ hardening, an edge-function template, and the "12 common mistakes" guide.
 - **Stack:** Expo SDK 57 · Expo Router · TypeScript · Zustand · Supabase · Jest
 - **Targets:** Android, iOS, and Web (react-native-web, single-page app)
 
+<p align="center">
+  <img src="assets/demo/demo.gif" alt="Signing in and landing on the authenticated home screen" width="330">
+</p>
+
+<p align="center"><sub>Email sign-in, session handling and the navigation guard, running on the web target.</sub></p>
+
 ---
 
 ## Features
