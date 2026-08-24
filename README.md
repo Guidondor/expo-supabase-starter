@@ -1,12 +1,12 @@
 # Expo + Supabase Starter
 
-A production-ready **Expo + Supabase** starter, battle-tested in real apps. Auth,
-offline sync, and the session-handling edge cases already solved — so you can ship
-your idea instead of your plumbing.
+Most Expo starters hand you screens. This one handles the things that break three
+months in, which are the ones you don't know exist until they happen to you: a
+query that hangs forever after the phone sleeps, a sign-out that never returns
+offline, an auth callback that deadlocks, and Row-Level Security that looks
+correct while handing every column of the row to the client.
 
-MIT licensed and complete on its own. There's also a [**Pro version**](#pro-version)
-for apps that need shared groups, the private-or-shared data pattern, column-level
-hardening, an edge-function template, and the "12 common mistakes" guide.
+Each of those is in here with the fix, extracted from apps I ship. MIT.
 
 - **Stack:** Expo SDK 57 · Expo Router · TypeScript · Zustand · Supabase · Jest
 - **Targets:** Android, iOS, and Web (react-native-web, single-page app)
@@ -23,13 +23,14 @@ hardening, an edge-function template, and the "12 common mistakes" guide.
 
 | | |
 |---|---|
-| **Email auth** | Sign up, sign in, sign out, password reset — wired end to end. |
-| **Google OAuth** | Separate web (redirect) and native (PKCE) flows that actually work. |
-| **Session handling** | Synchronous `onAuthStateChange`, account-switch detection, offline-safe sign out. |
-| **Navigation guard** | One guard redirects by session/recovery state, no flicker on boot. |
-| **`withTimeout`** | Wrap every query so supabase-js can't hang forever after mobile doze. |
-| **Durable offline queue** | Persisted write queue with coalescing + exponential backoff. Generic by handler. |
-| **Tests** | Jest (`jest-expo`) with example unit tests + a typecheck script. |
+| **RLS down to the column** | RLS filters rows, not columns — a correct policy still returns every field of a row you can read. The first migration revokes `email` at the column level and makes it immutable, so `select('*')` fails by design. Copy the pattern for your own sensitive fields. |
+| **A test that proves it** | `supabase/tests/rls_smoke.sql` assumes a real user's identity inside a rolled-back transaction and asserts what they *can't* reach. It refuses to report a pass on a project with fewer than two accounts, because "sees no other rows" is trivially true on an empty database. |
+| **`withTimeout`** | supabase-js can hang forever after the phone dozes: no error, no rejection, a spinner that never stops. Every query is wrapped so a dead promise becomes a real failure you can handle. |
+| **Durable offline queue** | Persisted write queue with coalescing and exponential backoff. Writes survive losing connection, and the timer is what guarantees they converge, not the connectivity events. |
+| **Session handling** | Synchronous `onAuthStateChange` (awaiting inside it deadlocks the auth library), account-switch detection, and a sign-out that works offline. |
+| **Email + Google auth** | Sign up, sign in, sign out, password reset. Google needs a different flow on web than on native, and both are here. |
+| **Navigation guard** | One guard redirects by session and recovery state, with no login-screen flicker on boot. |
+| **Tests** | Jest (`jest-expo`) with example unit tests, plus typecheck and lint scripts that run clean from a fresh clone. |
 
 ---
 
@@ -152,13 +153,18 @@ hits `window is not defined`. SPA is the right default here.
 
 ## Pro version
 
-The Pro version adds the features most apps eventually need, already built,
+This repo is complete on its own and nothing here is a teaser. If your app grows
+into shared data between users, there's a paid edition that adds the features most
+apps eventually need, already built,
 RLS-hardened, and covered by a reproducible database security test:
 
 - **Shared groups** — create/join by invite code, members, ownership transfer.
 - **Private-or-shared data pattern** — the exact RLS recipe for data that's private
   or shared with a group, with a working `notes` demo.
-- **Column-level hardening** — hide sensitive columns from the auto REST API.
+- **Column hardening on the write side** — this repo shows the read pattern on
+  `profiles`; the paid edition applies it across the shared tables and restricts
+  *which columns* a member may update, which is what stops someone editing a row
+  they legitimately own into something they shouldn't be.
 - **Edge function template** — a shared-secret authenticated endpoint (webhook/cron).
 - **"12 common mistakes" guide** — the Expo + Supabase pitfalls that cost real
   debugging time, with symptom → cause → fix → code.
