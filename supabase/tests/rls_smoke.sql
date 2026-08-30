@@ -27,6 +27,7 @@ DECLARE
   v_bool boolean;
   v_int int;
   v_total int;
+  v_role text;
 BEGIN
   -- Counted before dropping privileges, so RLS doesn't hide the answer.
   SELECT count(*) INTO v_total FROM public.profiles;
@@ -37,6 +38,17 @@ BEGIN
 
   SET LOCAL ROLE authenticated;
   PERFORM set_config('request.jwt.claims', json_build_object('sub', u::text, 'role','authenticated')::text, true);
+
+  -- The role switch is what gives every check below its meaning. A connection that
+  -- bypasses RLS passes all of them without exercising a single policy, so verify it
+  -- took effect before trusting any result. Note: on Supabase `postgres` is NOT a
+  -- superuser (rolsuper is false) but it does carry rolbypassrls, so a "is this a
+  -- superuser?" guard would pass while reading straight past every policy.
+  SELECT current_user INTO v_role;
+  SELECT rolbypassrls INTO v_bool FROM pg_roles WHERE rolname = current_user;
+  IF v_role <> 'authenticated' OR coalesce(v_bool, true) THEN
+    RAISE EXCEPTION 'RLS_SMOKE INCONCLUSIVE — running as "%" (bypassrls=%). Every check below would pass without testing a policy. Run this so it reaches the database as the role your app uses.', v_role, coalesce(v_bool::text, 'unknown');
+  END IF;
 
   -- Sees own profile
   SELECT count(*) INTO v_int FROM public.profiles WHERE id = u;
