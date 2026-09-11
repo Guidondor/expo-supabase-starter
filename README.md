@@ -25,6 +25,7 @@ Each of those is in here with the fix, extracted from apps I ship. MIT.
 |---|---|
 | **RLS down to the column** | RLS filters rows, not columns — a correct policy still returns every field of a row you can read. The first migration revokes `email` at the column level and makes it immutable, so `select('*')` fails by design. Copy the pattern for your own sensitive fields. |
 | **A test that proves it** | `supabase/tests/rls_smoke.sql` assumes a real user's identity inside a rolled-back transaction and asserts what they *can't* reach. It refuses to report a pass on a project with fewer than two accounts, because "sees no other rows" is trivially true on an empty database. |
+| **A sweep for what the test can't see** | Behaviour tests only cover the columns someone thought to assert on. `supabase/tests/privilege_sweep.sql` reads what the database actually grants and fails on anything not in a baseline declared at the top of the file, so a privilege nobody thought about is a failure by default. It is what turned up the grants this starter itself had left on Supabase's schema default — see `002_harden_grants.sql`. |
 | **`withTimeout`** | supabase-js can hang forever after the phone dozes: no error, no rejection, a spinner that never stops. Every query is wrapped so a dead promise becomes a real failure you can handle. |
 | **Durable offline queue** | Persisted write queue with coalescing and exponential backoff. Writes survive losing connection, and the timer is what guarantees they converge, not the connectivity events. |
 | **Session handling** | Synchronous `onAuthStateChange` (awaiting inside it deadlocks the auth library), account-switch detection, and a sign-out that works offline. |
@@ -148,6 +149,19 @@ hits `window is not defined`. SPA is the right default here.
       users and run `supabase/tests/rls_smoke.sql`. It refuses to report a pass
       with fewer than two accounts, because with one "sees no other rows" is
       true for lack of data.
+- [ ] Run `supabase/tests/privilege_sweep.sql` too, and re-run it every time you
+      add a table. The smoke test asserts behaviour on `profiles`; the sweep
+      reads every privilege the database actually grants and fails on anything
+      you have not declared. This matters because Supabase's schema default
+      grants `anon` and `authenticated` full DML on every new table in `public`
+      and EXECUTE on every new function — so the table you add next week starts
+      wide open at the privilege layer, with RLS as the only thing in the way.
+      Confirm the default on your own project:
+      ```sql
+      SELECT n.nspname, d.defaclobjtype, array_to_string(d.defaclacl, ' | ')
+      FROM pg_default_acl d JOIN pg_namespace n ON n.oid = d.defaclnamespace
+      WHERE n.nspname = 'public';
+      ```
 
 ---
 
