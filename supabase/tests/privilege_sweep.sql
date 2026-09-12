@@ -30,8 +30,19 @@
 -- HOW TO RUN
 --   Paste into the Supabase SQL Editor, or run in CI against your database.
 --   It is READ ONLY — no DDL, no DML, nothing to roll back. That is also why it
---   RAISEs only on failure, unlike rls_smoke.sql: a clean run is silent so a CI
---   step passes on exit code.
+--   RAISEs only on failure, unlike rls_smoke.sql: a clean run is silent.
+--
+--   IN CI, SET ON_ERROR_STOP. `psql -f` prints the failure and still exits 0
+--   without it, which turns this into a check that cannot fail — the exact bug
+--   it exists to catch, one layer up. Run it as:
+--
+--     psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/privilege_sweep.sql
+--
+--   Then prove the gate works before trusting it: add a line to
+--   baseline_columns that the database does not grant, and confirm the step
+--   goes red. It has to be baseline_columns — that is the only array checked in
+--   both directions, so a bogus line in baseline_tables or baseline_functions
+--   would pass and prove nothing.
 --
 -- FIRST RUN: the baseline below is the one that matches this starter's schema.
 -- When you add your own tables, regenerate it with the block at the bottom of
